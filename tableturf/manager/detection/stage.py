@@ -344,9 +344,9 @@ def stage(img: np.ndarray, rois: np.ndarray, roi_width, roi_height, last_stage: 
         _stage = stage.reshape(-1)
         opencv_rois = np.array([util.numpy_to_opencv(idx) for idx in rois])
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        # mask_color = cv2.inRange(hsv, HIS_SPECIAL_COLOR_HSV_LOWER_BOUND, HIS_SPECIAL_COLOR_HSV_UPPER_BOUND)
+        mask_color = cv2.inRange(hsv, HIS_SPECIAL_COLOR_HSV_LOWER_BOUND, HIS_SPECIAL_COLOR_HSV_UPPER_BOUND)
         mask_edge = np.zeros_like(img)
-        # mask_color = cv2.merge([mask_color, mask_color, mask_color])
+        mask_color = cv2.merge([mask_color, mask_color, mask_color])
         for k, left_top in enumerate(opencv_rois):
             roi = __roi(rois[k])
             _hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
@@ -370,11 +370,11 @@ def stage(img: np.ndarray, rois: np.ndarray, roi_width, roi_height, last_stage: 
 
     is_fiery = is_fiery.reshape((h, w))
     # mark all invalid fiery special squares as trivial squares
-    valid_fiery_sp = Stage(stage).my_fiery_sp
-    all_fiery_sp = np.argwhere(np.bitwise_and(is_fiery, stage == Grid.MySpecial.value))
-    invalid_fiery_sp = all_fiery_sp[np.bitwise_not(np.array([idx in valid_fiery_sp for idx in all_fiery_sp], dtype=bool))]
-    is_fiery[invalid_fiery_sp] = False
-    stage[invalid_fiery_sp] = Grid.MyInk.value
+    #valid_fiery_sp = Stage(stage).my_fiery_sp
+    #all_fiery_sp = np.argwhere(np.bitwise_and(is_fiery, stage == Grid.MySpecial.value))
+    #invalid_fiery_sp = all_fiery_sp[np.bitwise_not(np.array([idx in valid_fiery_sp for idx in all_fiery_sp], dtype=bool))]
+    #is_fiery[invalid_fiery_sp] = Fpalse
+    #stage[invalid_fiery_sp] = Grid.MyInk.value
     stage = Stage(stage)
     logger.debug(f'detection.stage: return={stage}')
     return stage

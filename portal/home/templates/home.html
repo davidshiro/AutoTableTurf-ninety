@@ -99,18 +99,11 @@ textarea {
 
     var default_profile = `[
   {
-    "current_level": 1,
+    "current_level": 3,
     "current_win": 0,
     "target_level": 3,
-    "target_win": 30,
-    "deck": 0
-  },
-  {
-    "current_level": 1,
-    "current_win": 0,
-    "target_level": 3,
-    "target_win": 30,
-    "deck": 0
+    "target_win": 300,
+    "deck": 1
   }
 ]`;
     window.onload = function () {
@@ -121,7 +114,7 @@ textarea {
 </script>
 <body>
 <label>Controller Endpoint:</label>
-<input type="url" id="controller_endpoint" value="http://192.168.50.101:5000/">
+<input type="url" id="controller_endpoint" value="http://192.168.1.245:5000/">
 <button onclick="connectOnClick()">Connect</button>
 
 <p></p>

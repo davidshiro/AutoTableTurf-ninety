@@ -42,7 +42,7 @@ class TableTurfManager:
         else:
             return a == b
 
-    def __multi_detect(self, detect_fn, sleep_time=0.1, max_loop=100):
+    def __multi_detect(self, detect_fn, sleep_time=0.1, max_loop=50):
         def wrapper(*args, **kwargs):
             previous = detect_fn(self.__capture(), *args, **kwargs)
             for _ in range(max_loop):
@@ -66,6 +66,22 @@ class TableTurfManager:
         self.__debugger = debugger
         self.job_stats = JobStats()
         self.__session = dict()
+
+
+    #checks if game is over prematurely
+    def __over_check(self, stage_grid):
+        logger.debug(f'tableturf.__over_check running on {stage_grid}')
+        empty_count = 0
+        count = 0
+        for i in stage_grid:
+            for j in i:
+                count += 1
+                if j == 64:
+                    empty_count += 1
+        logger.debug(f'tableturf.__over_check found {empty_count} out of {count} empty squares (threshhold = {.6*count})')
+        if (empty_count > (.6*count)):
+            return True
+        return
 
     def run(self, profile: Profile, closer: Closer = None, debug=False):
         self.__session = {
@@ -116,11 +132,13 @@ class TableTurfManager:
             self.__redraw()
             self.__init_roi()
             for round in range(12, 0, -1):
+                logger.debug(f'AI sees turn {round}')
                 status = self.__get_status(round)
+                if self.__over_check(status.stage.grid):
+                    break
                 step = self.__ai.next_step(status)
                 force_restart = self.__move(status, step)
                 if force_restart:
-                    self.__give_up()
                     break
             self.__update_stats()
             close = closer.close(self.job_stats)
@@ -133,7 +151,7 @@ class TableTurfManager:
 
     def __select_deck(self, deck: int):
         target = deck
-        while True:
+        for i in range(50):
             current = self.__multi_detect(detection.deck_cursor)(debug=self.__session['debug'])
             if current == target:
                 break
@@ -161,7 +179,7 @@ class TableTurfManager:
                 pass
         redraw = self.__ai.redraw(hands, stage, my_remaining_deck, his_deck)
         target = 1 if redraw else 0
-        while True:
+        for i in range(30):
             current = self.__multi_detect(detection.redraw_cursor)(debug=self.__session['debug'])
             if current == target:
                 break
@@ -187,8 +205,11 @@ class TableTurfManager:
             # TODO: update his deck here
             sleep(0.5)
         rois, roi_width, roi_height, last_stage = self.__session['rois'], self.__session['roi_width'], self.__session['roi_height'], self.__session['last_stage']
-        stage = self.__multi_detect(detection.stage)(rois=rois, roi_width=roi_width, roi_height=roi_height, last_stage=last_stage, debug=self.__session['debug'])
+        stage = self.__multi_detect(detection.stage, 0.1, 5)(rois=rois, roi_width=roi_width, roi_height=roi_height, last_stage=last_stage, debug=self.__session['debug']) #BUG: repeats a lot on no cards playable boards
+        logger.debug("tableturf.__get_status: running")
         self.__session['last_stage'] = stage
+        if self.__over_check(stage.grid):
+            return Status(stage=stage, hands=None, round=None, my_sp=None, his_sp=None, my_deck=None, his_deck=None)
         hands = self.__multi_detect(detection.hands)(debug=self.__session['debug'])
         for card in hands:
             try:
@@ -200,33 +221,34 @@ class TableTurfManager:
         return Status(stage=stage, hands=hands, round=round, my_sp=my_sp, his_sp=his_sp, my_deck=my_deck, his_deck=his_deck)
 
     def __move_hands_cursor(self, target):
-        while True:
+        for i in range(20):
             current = self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug'])
             if current == target:
-                break
+                return
             macro = action.move_hands_cursor_marco(target, current)
             self.__controller.macro(macro)
+        logger.debug("tableturf.__move_hands_cursor failure")
+        return True
 
     def __move(self, status: Status, step: Step) -> Optional[bool]:
         if step.action == step.Action.Skip:
-            self.__move_hands_cursor(4)
-            while not self.__multi_detect(detection.skip)(debug=self.__session['debug']):
-                self.__controller.press_buttons([Controller.Button.A])
-            self.__move_hands_cursor(status.hands.index(step.card))
-            self.__controller.press_buttons([Controller.Button.A])
-            self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
-            return
+            return self.__pass(status.hands.index(step.card))
 
         if step.action == step.Action.SpecialAttack:
-            self.__move_hands_cursor(5)
+            if self.__move_hands_cursor(5):
+                logger.debug("tableturf.__move failure")
+                return True
             while not self.__multi_detect(detection.special_on)(debug=self.__session['debug']):
+                self.__controller.press_buttons([Controller.Button.B]) #prevents weird scenarios where detection fails to realize special is already on
                 self.__controller.press_buttons([Controller.Button.A])
         # select card
-        self.__move_hands_cursor(status.hands.index(step.card))
-        expected_preview = step.card.get_pattern(0)
-        for x in range(51):
-            if x == 50:
+        if self.__move_hands_cursor(status.hands.index(step.card)):
+                logger.debug("tableturf.__move failure")
                 return True
+        expected_preview = step.card.get_pattern(0)
+        for x in range(31):
+            if x == 30:
+                return self.__pass(status.hands.index(step.card))
             self.__controller.press_buttons([Controller.Button.A])
             preview, current_index = self.__multi_detect(detection.preview)(stage=status.stage, rois=self.__session['rois'], roi_width=self.__session['roi_width'], roi_height=self.__session['roi_height'], debug=self.__session['debug'])
             if action.compare_pattern(preview, expected_preview):
@@ -235,9 +257,10 @@ class TableTurfManager:
         if step.rotate > 0:
             target_rotate = step.rotate
             all_patterns = [step.card.get_pattern(i) for i in range(4)]
-            for x in range(21):
-                if x == 20:
-                    return True
+            for x in range(11):
+                if x == 10:
+                    logger.debug("tableturf.__move failure: could not find card after rotation")
+                    return self.__pass(status.hands.index(step.card))
                 actual, _ = self.__multi_detect(detection.preview)(stage=status.stage, rois=self.__session['rois'], roi_width=self.__session['roi_width'], roi_height=self.__session['roi_height'], debug=self.__session['debug'])
                 current_rotate = np.argmax([pattern == actual for pattern in all_patterns])
                 if current_rotate == 0 and all_patterns[0] != actual:
@@ -248,6 +271,9 @@ class TableTurfManager:
                     break
                 macro = action.rotate_card_marco(rotate)
                 self.__controller.macro(macro)
+                # moves card up and left to help CV recognize preview
+                self.__controller.press_buttons([Controller.Button.DPAD_UP])
+                self.__controller.press_buttons([Controller.Button.DPAD_LEFT])
         # move card
         expected_preview = step.card.get_pattern(step.rotate)
         # in case missing Button.A command
@@ -265,10 +291,9 @@ class TableTurfManager:
                 else:
                     break
             self.__controller.press_buttons([Controller.Button.A])
-            self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
             sleep(3)
-            # flow didn't go ahead -> card was not placed -> randomly move and re-detect
-            for i in range(25):
+            # flow didn't go ahead -> card was not placed -> fixes common mistake of 1 too high or 1 too left -> passes
+            for i in range(8):
                 if status.round == 1:
                     preview, _ = self.__multi_detect(detection.preview)(stage=status.stage, rois=self.__session['rois'], roi_width=self.__session['roi_width'], roi_height=self.__session['roi_height'], debug=self.__session['debug'])
                     if preview is None or np.all(preview.squares == Grid.MySpecial.value):
@@ -276,25 +301,42 @@ class TableTurfManager:
                 elif self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) != -1:
                     return
                 sleep(0.5)
-            disturbance = random.choice([Controller.Button.DPAD_RIGHT, Controller.Button.DPAD_UP, Controller.Button.DPAD_LEFT, Controller.Button.DPAD_DOWN])
-            self.__controller.press_buttons([disturbance] * 2)
+            logger.warn("tableturf.move: card placement correcting")
+            self.__controller.press_buttons([Controller.Button.DPAD_DOWN])
+            self.__controller.press_buttons([Controller.Button.A])
+            sleep(0.1)
+            self.__controller.press_buttons([Controller.Button.DPAD_UP])
+            self.__controller.press_buttons([Controller.Button.DPAD_RIGHT])
+            self.__controller.press_buttons([Controller.Button.A])
+            sleep(0.1)
+            self.__controller.press_buttons([Controller.Button.DPAD_LEFT])
+            sleep(0.3)
+
+            for i in range(3):
+                if status.round == 1:
+                    preview, _ = self.__multi_detect(detection.preview)(stage=status.stage, rois=self.__session['rois'], roi_width=self.__session['roi_width'], roi_height=self.__session['roi_height'], debug=self.__session['debug'])
+                    if preview is None or np.all(preview.squares == Grid.MySpecial.value):
+                        return
+                elif self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) != -1:
+                    return
+                sleep(0.5)
+
+            return self.__pass(status.hands.index(step.card))
         return True
 
-    def __give_up(self):
-        self.__controller.press_buttons([Controller.Button.PLUS])
-        self.__controller.press_buttons([Controller.Button.PLUS])  # in case command is lost
-        target = 1
-        while True:
-            current = self.__multi_detect(detection.giveup_cursor)(debug=self.__session['debug'])
-            if current == target:
-                break
-            macro = action.move_giveup_cursor_marco(target, current)
-            self.__controller.macro(macro)
+    def __pass(self, card):
+        self.__controller.press_buttons([Controller.Button.B])  #make sure we are not in card placement
+        if self.__move_hands_cursor(4):
+            logger.debug("tableturf.__move failure")
+            return True
+        while not self.__multi_detect(detection.skip)(debug=self.__session['debug']):
+            self.__controller.press_buttons([Controller.Button.A])
+        if self.__move_hands_cursor(card):
+            logger.debug("tableturf.__move failure")
+            return True
         self.__controller.press_buttons([Controller.Button.A])
         self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
-        sleep(2)
-        self.__controller.press_buttons([Controller.Button.A])
-        self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
+        return
 
     def __update_stats(self):
         sleep(10)
@@ -310,7 +352,7 @@ class TableTurfManager:
         self.__controller.press_buttons([Controller.Button.A])
         target = 0 if close else 1
         count = 0
-        for i in range(101):
+        for i in range(31):
             current = self.__multi_detect(detection.replay_cursor)(debug=self.__session['debug'])
             if current == target:
                 break
@@ -330,8 +372,7 @@ class TableTurfManager:
         while not self.__multi_detect(detection.level)(debug=self.__session['debug']):
             self.__controller.press_buttons([Controller.Button.A])
             sleep(2)
-        self.__controller.press_buttons([Controller.Button.DPAD_RIGHT])
-        self.__controller.press_buttons([Controller.Button.DPAD_RIGHT])
+        self.__controller.press_buttons([Controller.Button.DPAD_LEFT])
         while not self.__multi_detect(detection.start)(debug=self.__session['debug']):
             self.__controller.press_buttons([Controller.Button.DPAD_DOWN])
             sleep(0.5)
@@ -347,8 +388,7 @@ class TableTurfManager:
         while not self.__multi_detect(detection.level)(debug=self.__session['debug']):
             self.__controller.press_buttons([Controller.Button.A])
             sleep(2)
-        self.__controller.press_buttons([Controller.Button.DPAD_RIGHT])
-        self.__controller.press_buttons([Controller.Button.DPAD_RIGHT])
+        self.__controller.press_buttons([Controller.Button.DPAD_LEFT])
         while not self.__multi_detect(detection.start)(debug=self.__session['debug']):
             self.__controller.press_buttons([Controller.Button.DPAD_DOWN])
             sleep(0.5)

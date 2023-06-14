@@ -18,10 +18,11 @@ class Status:
         self.__my_deck = my_deck
         self.__his_deck = his_deck
 
-        self.__all_possible_steps_by_card = {
-            card: list(self.__possible_steps_without_special_attack(card).union(self.__possible_steps_with_special_attack(card))) for card in hands
-        }
-        self.__all_possible_steps = [step for steps_set in self.__all_possible_steps_by_card.values() for step in steps_set]
+        if hands != None:
+            self.__all_possible_steps_by_card = {
+                card: list(self.__possible_steps_without_special_attack(card).union(self.__possible_steps_with_special_attack(card))) for card in hands
+            }
+            self.__all_possible_steps = [step for steps_set in self.__all_possible_steps_by_card.values() for step in steps_set]
 
     def __possible_steps_without_special_attack(self, card: Card) -> Set[Step]:
         m, n = self.stage.shape
