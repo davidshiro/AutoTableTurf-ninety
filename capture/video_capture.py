@@ -12,7 +12,10 @@ class VideoCapture(Capture):
 
         :param device_idx: Camera index.
         """
-        self.__cam = cv2.VideoCapture(device_idx)
+        try:
+            self.__cam = cv2.VideoCapture(device_idx)
+        except:
+            logger.error("indexed source is unavailable")
 
     @property
     def width(self):

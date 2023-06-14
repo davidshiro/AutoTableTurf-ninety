@@ -47,6 +47,10 @@ On the web portal:
 
 ![image](https://user-images.githubusercontent.com/36651740/226627357-4169bf07-ee44-4739-915c-4413efcae0fe.png)
 
+ninety's note:
+i completely broke the level part of profiles. it always picks level 2. the program's not strong enough to beat lv 3 consistantly, so this should be fine- 
+just set current level and target level to 3 and you shouldn't have issues
+
 Profile example:
 ```json
 [

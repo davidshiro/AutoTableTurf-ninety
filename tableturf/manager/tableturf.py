@@ -293,7 +293,7 @@ class TableTurfManager:
             self.__controller.press_buttons([Controller.Button.A])
             sleep(3)
             # flow didn't go ahead -> card was not placed -> fixes common mistake of 1 too high or 1 too left -> passes
-            for i in range(8):
+            for i in range(10):
                 if status.round == 1:
                     preview, _ = self.__multi_detect(detection.preview)(stage=status.stage, rois=self.__session['rois'], roi_width=self.__session['roi_width'], roi_height=self.__session['roi_height'], debug=self.__session['debug'])
                     if preview is None or np.all(preview.squares == Grid.MySpecial.value):
@@ -388,7 +388,6 @@ class TableTurfManager:
         while not self.__multi_detect(detection.level)(debug=self.__session['debug']):
             self.__controller.press_buttons([Controller.Button.A])
             sleep(2)
-        self.__controller.press_buttons([Controller.Button.DPAD_LEFT])
         while not self.__multi_detect(detection.start)(debug=self.__session['debug']):
             self.__controller.press_buttons([Controller.Button.DPAD_DOWN])
             sleep(0.5)

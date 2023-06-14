@@ -21,11 +21,14 @@ def list_available_source():
     index = 0
     arr = []
     while True:
-        cap = cv2.VideoCapture(index)
-        if not cap.read()[0]:
-            break
-        else:
-            arr.append(index)
+        try:
+            cap = cv2.VideoCapture(index)
+            if not cap.read()[0]:
+                break
+            else:
+                arr.append(index)
+        except:
+            logger.error("indexed source is unavailable")
         cap.release()
         index += 1
     return arr
@@ -92,16 +95,16 @@ def change_source():
 
 def generate_frames():
     empty = np.zeros((1080, 1920, 3))
-    _, empty_buf = cv2.imencode(".jpeg", empty)
+    _, empty_buf = cv2.imencode(".png", empty)
     empty_frame = bytes(io.BytesIO(empty_buf).getbuffer())
     while True:
         try:
             img = capture.capture()
-            _, buffer = cv2.imencode(".jpeg", img)
+            _, buffer = cv2.imencode(".png", img)
             frame = bytes(io.BytesIO(buffer).getbuffer())
-            yield b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n'
+            yield b'--frame\r\nContent-Type: image/png\r\n\r\n' + frame + b'\r\n'
         except Exception:
-            yield b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + empty_frame + b'\r\n'
+            yield b'--frame\r\nContent-Type: image/png\r\n\r\n' + empty_frame + b'\r\n'
 
 
 def video_feed():
@@ -127,6 +130,9 @@ def key_press():
                     controller.tilt_stick(key, 0, 100, tilted=0.3)
             else:
                 controller.press_buttons([key])
+        if raw == "r":
+            available_sources = list_available_source()
+            logger.info("refreshed sources")
     # TODO: support long press
     return Response()
 
