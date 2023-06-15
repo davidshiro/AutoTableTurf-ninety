@@ -36,11 +36,11 @@ class Controller(ABC):
         L_STICK = 'L_STICK'
 
     @abstractmethod
-    def press_buttons(self, buttons: List[Button], down: float = 0.08, up: float = 0.08, block=True) -> bool:
+    def press_buttons(self, buttons: List[Button], down: float = 0.05, up: float = 0.05, block=True) -> bool:
         raise NotImplementedError
 
     @abstractmethod
-    def tilt_stick(self, stick: Stick, x: int, y: int, tilted: float = 0.1, released: float = 0.1, block=True) -> bool:
+    def tilt_stick(self, stick: Stick, x: int, y: int, tilted: float = 0.05, released: float = 0.05, block=True) -> bool:
         raise NotImplementedError
 
     # Macro format:

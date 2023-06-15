@@ -201,9 +201,11 @@ class TableTurfManager:
 
     def __get_status(self, round: int) -> Status:
         my_deck, his_deck = self.__session['my_deck'], self.__session['his_deck']
-        while self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) == -1:
+        i = 0
+        while (self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) == -1) and (i < 20):
             # TODO: update his deck here
             sleep(0.5)
+            i += 1
         rois, roi_width, roi_height, last_stage = self.__session['rois'], self.__session['roi_width'], self.__session['roi_height'], self.__session['last_stage']
         stage = self.__multi_detect(detection.stage, 0.1, 5)(rois=rois, roi_width=roi_width, roi_height=roi_height, last_stage=last_stage, debug=self.__session['debug']) #BUG: repeats a lot on no cards playable boards
         logger.debug("tableturf.__get_status: running")
@@ -312,7 +314,7 @@ class TableTurfManager:
             self.__controller.press_buttons([Controller.Button.DPAD_LEFT])
             sleep(0.3)
 
-            for i in range(3):
+            for i in range(10):
                 if status.round == 1:
                     preview, _ = self.__multi_detect(detection.preview)(stage=status.stage, rois=self.__session['rois'], roi_width=self.__session['roi_width'], roi_height=self.__session['roi_height'], debug=self.__session['debug'])
                     if preview is None or np.all(preview.squares == Grid.MySpecial.value):

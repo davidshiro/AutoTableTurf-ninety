@@ -63,7 +63,7 @@ class R3Controller(Controller):
                 print(p)
         return ports
 
-    def press_buttons(self, buttons: List[Controller.Button], down: float = 0.1, up: float = 0.1, block=True) -> bool:
+    def press_buttons(self, buttons: List[Controller.Button], down: float = 0.05, up: float = 0.05, block=True) -> bool:
         logger.debug(f'press_buttons: buttons={buttons}, down={down}, up={up}, block={block}')
         tmp_ls = [self.__chart[str(b.value)] for b in buttons]
         msg = '\r\n'.join([x for x in tmp_ls if x is not None])
@@ -73,7 +73,7 @@ class R3Controller(Controller):
         sleep(up)
         return True
 
-    def tilt_stick(self, stick: Controller.Stick, x: int, y: int, tilted: float = 0.1, released: float = 0.1, block=True) -> bool:
+    def tilt_stick(self, stick: Controller.Stick, x: int, y: int, tilted: float = 0.05, released: float = 0.05, block=True) -> bool:
         logger.debug(f'tilt_stick: stick={stick}, x={x}, y={y}, tilted={tilted}, released={released}, block={block}')
         if 128 > x >= 0:
             x_msg = 'MIN'  # 0
