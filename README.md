@@ -80,13 +80,12 @@ Each block represents the configuration of an NPC. The above profile performs th
 1. [Splatoon3 AutoTableTurf Demo (1/2)](https://youtu.be/6ZauIWV1sGA)
 2. [Splatoon3 AutoTableTurf Demo (2/2)](https://youtu.be/AXANkU0uDiA)
 
-## Plan
+## ninety's to do list
 
-- [x] Virtual controller API
-- [x] Screen capturing
-- [x] Screen recognition & Game flow testing
-- [x] Smarter AI
-- [x] User-friendly interface
+- [ ] Faster (sometimes dumber is OK) AI
+   - [ ] Select cards before checking possible moves
+- [ ] Make trying to select a deck outside of deck selection less fatal
+- [ ] Speed up inputs
 
 ## Credits
 
