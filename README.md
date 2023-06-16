@@ -85,7 +85,7 @@ Each block represents the configuration of an NPC. The above profile performs th
 - [ ] Faster (sometimes dumber is OK) AI
    - [ ] Select cards before checking possible moves
 - [ ] Make trying to select a deck outside of deck selection less fatal
-- [ ] Speed up inputs
+- [X] Speed up inputs
 
 ## Credits
 
