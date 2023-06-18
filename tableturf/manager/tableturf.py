@@ -279,9 +279,9 @@ class TableTurfManager:
         # move card
         expected_preview = step.card.get_pattern(step.rotate)
         # in case missing Button.A command
-        for x in range(10):
+        for x in range(4):
             # keep moving until preview is in the target position
-            for y in range(10):
+            for y in range(5):
                 # keep detecting until preview is found
                 for z in range(10):
                     preview, current_index = self.__multi_detect(detection.preview)(stage=status.stage, rois=self.__session['rois'], roi_width=self.__session['roi_width'], roi_height=self.__session['roi_height'], debug=self.__session['debug'])
@@ -290,12 +290,12 @@ class TableTurfManager:
                 macro = action.move_card_marco(current_index, preview, status.stage, step)
                 if macro.strip() != '':
                     self.__controller.macro(macro)
-                else:
+                else:   
                     break
             self.__controller.press_buttons([Controller.Button.A])
             self.__controller.press_buttons([Controller.Button.A])
             sleep(3)
-            # flow didn't go ahead -> card was not placed -> fixes common mistake of 1 too high or 1 too left -> passes
+            # flow didn't go ahead -> card was not placed -> oops we pass (corrections take too long)
             for i in range(13):
                 if status.round == 1:
                     preview, _ = self.__multi_detect(detection.preview)(stage=status.stage, rois=self.__session['rois'], roi_width=self.__session['roi_width'], roi_height=self.__session['roi_height'], debug=self.__session['debug'])
@@ -304,26 +304,6 @@ class TableTurfManager:
                 elif self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) != -1:
                     return
                 sleep(0.5)
-            logger.warn("tableturf.move: card placement correcting")
-            self.__controller.press_buttons([Controller.Button.DPAD_DOWN])
-            self.__controller.press_buttons([Controller.Button.A])
-            sleep(0.1)
-            self.__controller.press_buttons([Controller.Button.DPAD_UP])
-            self.__controller.press_buttons([Controller.Button.DPAD_RIGHT])
-            self.__controller.press_buttons([Controller.Button.A])
-            sleep(0.1)
-            self.__controller.press_buttons([Controller.Button.DPAD_LEFT])
-            sleep(0.3)
-
-            for i in range(13):
-                if status.round == 1:
-                    preview, _ = self.__multi_detect(detection.preview)(stage=status.stage, rois=self.__session['rois'], roi_width=self.__session['roi_width'], roi_height=self.__session['roi_height'], debug=self.__session['debug'])
-                    if preview is None or np.all(preview.squares == Grid.MySpecial.value):
-                        return
-                elif self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) != -1:
-                    return
-                sleep(0.5)
-
             return self.__pass(status.hands.index(step.card))
         return True
 
