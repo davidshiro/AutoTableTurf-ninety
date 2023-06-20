@@ -167,27 +167,29 @@ class TableTurfManager:
             self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
 
     def __redraw(self):
-        while self.__multi_detect(detection.redraw_cursor)(debug=self.__session['debug']) == -1:
+        for i in range(50):
+            if self.__multi_detect(detection.redraw_cursor)(debug=self.__session['debug']) != -1: #on proceed if redraw cursor is found
+                hands = self.__multi_detect(detection.hands)(debug=self.__session['debug'])
+                stage = self.__session['empty_stage']
+                my_deck, his_deck = self.__session['my_deck'], self.__session['his_deck']
+                my_remaining_deck = copy.deepcopy(my_deck)
+                for card in hands:
+                    try:
+                        my_remaining_deck.remove(card)
+                    except ValueError:
+                        pass
+                redraw = self.__ai.redraw(hands, stage, my_remaining_deck, his_deck)
+                target = 1 if redraw else 0
+                for i in range(30):
+                    current = self.__multi_detect(detection.redraw_cursor)(debug=self.__session['debug'])
+                    if current == target:
+                        break
+                    macro = action.move_redraw_cursor_marco(target, current)
+                    self.__controller.macro(macro)
+                self.__controller.press_buttons([Controller.Button.A])
+                self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
+                return
             sleep(0.5)
-        hands = self.__multi_detect(detection.hands)(debug=self.__session['debug'])
-        stage = self.__session['empty_stage']
-        my_deck, his_deck = self.__session['my_deck'], self.__session['his_deck']
-        my_remaining_deck = copy.deepcopy(my_deck)
-        for card in hands:
-            try:
-                my_remaining_deck.remove(card)
-            except ValueError:
-                pass
-        redraw = self.__ai.redraw(hands, stage, my_remaining_deck, his_deck)
-        target = 1 if redraw else 0
-        for i in range(30):
-            current = self.__multi_detect(detection.redraw_cursor)(debug=self.__session['debug'])
-            if current == target:
-                break
-            macro = action.move_redraw_cursor_marco(target, current)
-            self.__controller.macro(macro)
-        self.__controller.press_buttons([Controller.Button.A])
-        self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
 
     def __init_roi(self):
         while self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) == -1:
