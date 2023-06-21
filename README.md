@@ -1,3 +1,7 @@
+# Ninety's note:
+
+This is an experimental fork of the AutoTableTurf project that is much more limited in scope- simply creating a fault-tolerant, optimized version of AutoTableTurf to gain EXP as fast as possible. 
+
 # AutoTableTurf
 
 Automate the Tableturf game helping you reach Level 50 and get all sleeves. The script is based on image recognition and bluetooth emulator to auto play Tableturf.
