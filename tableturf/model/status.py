@@ -20,9 +20,15 @@ class Status:
 
         if hands != None:
             self.__all_possible_steps_by_card = {
-                card: list(self.__possible_steps_without_special_attack(card).union(self.__possible_steps_with_special_attack(card))) for card in hands
+                #card: list(self.__possible_steps_without_special_attack(card).union(self.__possible_steps_with_special_attack(card))) for card in hands
+                card: None for card in hands
             }
-            self.__all_possible_steps = [step for steps_set in self.__all_possible_steps_by_card.values() for step in steps_set]
+            self.__all_possible_steps = None
+            self.__all_normal_steps_by_card = {
+                #card: list(self.__possible_steps_without_special_attack(card).union(self.__possible_steps_with_special_attack(card))) for card in hands
+                card: None for card in hands
+            }
+            self.__all_normal_steps = None
 
     def __possible_steps_without_special_attack(self, card: Card) -> Set[Step]:
         m, n = self.stage.shape
@@ -100,6 +106,31 @@ class Status:
         """
         return self.__his_deck
 
+    def get_normal_steps(self, card: Optional[Card] = None, action: Step.Action = None) -> List[Step]:
+        """
+        Return all normal steps in the current status.
+
+        :param card: if not None, return normal steps of the given card.
+        :param action: if not None, only return steps with the given action.
+        """
+        if card is None:
+            if self.__all_normal_steps is None:
+                self.calc_all_normal_steps()
+            steps = self.__all_normal_steps
+        else:
+            if self.__all_normal_steps_by_card[card] is None:
+                self.__all_normal_steps_by_card[card] = self.__possible_steps_without_special_attack(card)
+            steps = self.__all_normal_steps_by_card[card]
+        if action is not None:
+            steps = [step for step in steps if step.action == action]
+        return steps
+
+    def calc_all_normal_steps(self):
+        self.__all_normal_steps_by_card = {
+            card: list(self.__possible_steps_without_special_attack(card)) for card in self.__hands
+        }
+        self.__all_normal_steps = [step for steps_set in self.__all_normal_steps_by_card.values() for step in steps_set]
+
     def get_possible_steps(self, card: Optional[Card] = None, action: Step.Action = None) -> List[Step]:
         """
         Return all possible steps in the current status.
@@ -108,12 +139,22 @@ class Status:
         :param action: if not None, only return steps with the given action.
         """
         if card is None:
+            if self.__all_possible_steps is None:
+                self.calc_all_possible_steps()
             steps = self.__all_possible_steps
         else:
+            if self.__all_possible_steps_by_card[card] is None:
+                self.__all_possible_steps_by_card[card] = self.get_normal_steps(card).union(self.__possible_steps_with_special_attack(card))
             steps = self.__all_possible_steps_by_card[card]
         if action is not None:
             steps = [step for step in steps if step.action == action]
         return steps
+
+    def calc_all_possible_steps(self):
+        self.__all_possible_steps_by_card = {
+            card: list(self.get_normal_steps(card).union(self.__possible_steps_with_special_attack(card))) for card in self.__hands
+        }
+        self.__all_possible_steps = [step for steps_set in self.__all_possible_steps_by_card.values() for step in steps_set]
 
     def __repr__(self):
         return f'Stage(stage={self.__stage}, hands={self.__hands}, round={self.__round}, my_sp={self.__my_sp}, his_sp={self.__his_sp}, my_deck={self.__my_deck}, his_deck={self.__his_deck})'
