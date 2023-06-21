@@ -57,7 +57,7 @@ class Alpha(AI):
                 cards = self.__sort_hands_for_expanding(status)
                 logger.debug(f'tableturf.ai.alpha.next_step.expanding: cards={cards}, case=expanding')
                 for card in cards:
-                    steps = status.get_possible_steps(card, action=Step.Action.Place)
+                    steps = status.get_normal_steps(card, action=Step.Action.Place)
                     scores = np.array([self.__score_expanding_step(current_score, status, step) for step in steps])
                     logger.debug(f'tableturf.ai.alpha.next_step.expanding: scores={scores}, steps={steps}, case=expanding')
                     if self.__is_good_for_expanding(scores, steps):
