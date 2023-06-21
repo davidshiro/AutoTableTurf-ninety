@@ -132,7 +132,7 @@ class Status:
         """
         if card is None:
             for c in self.__hands:
-                if self.__all_possible_steps_by_card[c] is None:
+                if self.__all_possible_steps_by_card[c] is None and c is not None:
                     __all_possible_steps_by_card[c] = list(self.__possible_steps_without_special_attack(card))
             self.__all_possible_steps = [step for steps_set in self.__all_possible_steps_by_card.values() for step in steps_set]
         else: 
@@ -165,7 +165,7 @@ class Status:
         """
         if card is None:
             for c in self.__hands:
-                if self.__all_possible_steps_by_card[c] is None:
+                if self.__all_possible_steps_by_card[c] is None and c is not None:
                     __all_possible_steps_by_card[c] = self.get_normal_steps(card) + list(self.__possible_steps_with_special_attack(card))
             self.__all_possible_steps = [step for steps_set in self.__all_possible_steps_by_card.values() for step in steps_set]
         else: 
