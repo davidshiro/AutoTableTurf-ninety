@@ -118,7 +118,7 @@ class Status:
                 self.calc_all_normal_steps()
             steps = self.__all_normal_steps
         else:
-            calc_all_normal_steps(card)
+            self.calc_all_normal_steps(card)
             steps = self.__all_normal_steps_by_card[card]
         if action is not None:
             steps = [step for step in steps if step.action == action]
@@ -132,12 +132,12 @@ class Status:
         """
         if card is None:
             for c in self.__hands:
-                if self.__all_possible_steps_by_card[c] is None and c is not None:
-                    __all_possible_steps_by_card[c] = list(self.__possible_steps_without_special_attack(card))
-            self.__all_possible_steps = [step for steps_set in self.__all_possible_steps_by_card.values() for step in steps_set]
+                if self.__all_normal_steps_by_card[c] is None:
+                    self.__all_normal_steps_by_card[c] = list(self.__possible_steps_without_special_attack(c))
+            self.__all_normal_steps = [step for steps_set in self.__all_normal_steps_by_card.values() for step in steps_set]
         else: 
-            if self.__all_possible_steps_by_card[card] is None:
-                self.__all_possible_steps_by_card[card] = list(self.__possible_steps_without_special_attack(card))
+            if self.__all_normal_steps_by_card[card] is None:
+                self.__all_normal_steps_by_card[card] = list(self.__possible_steps_without_special_attack(card))
 
     def get_possible_steps(self, card: Optional[Card] = None, action: Step.Action = None) -> List[Step]:
         """
@@ -165,8 +165,8 @@ class Status:
         """
         if card is None:
             for c in self.__hands:
-                if self.__all_possible_steps_by_card[c] is None and c is not None:
-                    __all_possible_steps_by_card[c] = self.get_normal_steps(card) + list(self.__possible_steps_with_special_attack(card))
+                if self.__all_possible_steps_by_card[c] is None:
+                    self.__all_possible_steps_by_card[c] = self.get_normal_steps(c) + list(self.__possible_steps_with_special_attack(c))
             self.__all_possible_steps = [step for steps_set in self.__all_possible_steps_by_card.values() for step in steps_set]
         else: 
             if self.__all_possible_steps_by_card[card] is None:
