@@ -128,8 +128,8 @@ class TableTurfManager:
         self.job_stats.task_stats.start_time = datetime.now().timestamp()
         while True:
             self.__init_battle()
-            self.__select_deck(deck)
-            self.__redraw()
+            if self.__select_deck(deck): #ensures deck was found before proceeding to redraw
+                self.__redraw()
             self.__init_roi()
             for round in range(12, 0, -1):
                 logger.debug(f'AI sees turn {round}')
@@ -165,6 +165,8 @@ class TableTurfManager:
             self.__session['my_deck'] = deck
             self.__controller.press_buttons([Controller.Button.A])
             self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
+            return True
+        return
 
     def __redraw(self):
         for i in range(50):
