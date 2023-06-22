@@ -193,8 +193,8 @@ class Alpha(AI):
     @staticmethod
     def __score_special_attack_step(status: Status, step: Step, sp_threshold):
         next_stage = util.estimate_stage(status.stage, step)
-        my_ink = len(next_stage.my_ink)
-        his_ink = len(next_stage.his_ink)
+        my_ink = len(next_stage.my_ink) - len(status.stage.my_ink)
+        his_ink = len(next_stage.his_ink) - len(status.stage.his_ink)
         sp = status.my_sp + util.estimate_my_sp_diff(status.stage, next_stage, step)
         if sp > sp_threshold:
             sp = -sp
@@ -204,16 +204,16 @@ class Alpha(AI):
     @staticmethod
     def __score_round_2_step(status: Status, step: Step):
         next_stage = util.estimate_stage(status.stage, step)
-        my_ink = len(next_stage.my_ink)
-        his_ink = len(next_stage.his_ink)
+        my_ink = len(next_stage.my_ink) - len(status.stage.my_ink)
+        his_ink = len(next_stage.his_ink) - len(status.stage.his_ink)
         sp = status.my_sp + util.estimate_my_sp_diff(status.stage, next_stage, step)
         return my_ink, his_ink * -1, sp
 
     @staticmethod
     def __score_round_1_step(status: Status, step: Step):
         next_stage = util.estimate_stage(status.stage, step)
-        my_ink = len(next_stage.my_ink)
-        his_ink = len(next_stage.his_ink)
+        my_ink = len(next_stage.my_ink) - len(status.stage.my_ink)
+        his_ink = len(next_stage.his_ink) - len(status.stage.his_ink)
         return my_ink, his_ink * -1
 
     @staticmethod
