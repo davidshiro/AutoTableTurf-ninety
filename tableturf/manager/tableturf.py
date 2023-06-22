@@ -68,7 +68,7 @@ class TableTurfManager:
         self.__session = dict()
 
 
-    #checks if game is over prematurely
+    #checks if game is over by looking if stage has moved
     def __over_check(self, stage_grid):
         logger.debug(f'tableturf.__over_check running on {stage_grid}')
         empty_count = 0
@@ -130,8 +130,15 @@ class TableTurfManager:
             self.__init_battle()
             if self.__select_deck(deck): #ensures deck was found before proceeding to redraw
                 self.__redraw()
+            else:
+                #panic protocol
+                self.__controller.press_buttons([Controller.Button.A])
+                self.__controller.press_buttons([Controller.Button.A])
+                sleep(0.5)
+                continue
             self.__init_roi()
-            for round in range(12, 0, -1):
+            round = 12
+            while True:
                 logger.debug(f'AI sees turn {round}')
                 status = self.__get_status(round)
                 if self.__over_check(status.stage.grid):
@@ -140,6 +147,11 @@ class TableTurfManager:
                 force_restart = self.__move(status, step)
                 if force_restart:
                     break
+                round = round - 1
+                if round <= 0:
+                    sleep(10)
+                    if self.__over_check(status.stage.grid):
+                        break
             self.__update_stats()
             close = closer.close(self.job_stats)
             self.__close(close)
@@ -327,7 +339,6 @@ class TableTurfManager:
         return
 
     def __update_stats(self):
-        sleep(10)
         result = self.__multi_detect(detection.result)(debug=self.__session['debug'])
         if result == Result.Win:
             self.job_stats.task_stats.win += 1

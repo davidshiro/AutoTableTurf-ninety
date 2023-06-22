@@ -86,8 +86,8 @@ Each block represents the configuration of an NPC. The above profile performs th
 
 ## ninety's to do list
 
-- [ ] Faster (sometimes dumber is OK) AI
-   - [ ] Select cards before checking possible moves
+- [X] Faster (sometimes dumber is OK) AI
+   - [X] Select cards before checking possible moves
 - [X] Make trying to redraw outside of redraw less fatal
 - [X] Make trying to select a deck outside of deck selection less fatal
 - [X] Speed up inputs

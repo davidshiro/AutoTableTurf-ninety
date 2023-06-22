@@ -74,15 +74,17 @@ class Alpha(AI):
             sorted_cards = sorted(status.hands, key=lambda c: c.size, reverse=True)
             result = dict()
             for i, c in enumerate(sorted_cards):
-                if card.sp_cost > status.my_sp - 3:
-                    steps = status.get_possible_steps(card)
+                if c.sp_cost > status.my_sp - 3:
+                    steps = status.get_normal_steps(c)
                 else:
-                    steps = status.get_normal_steps(card)
+                    steps = status.get_possible_steps(c)
                 scores = np.array([self.__score_round_1_step(status, step) for step in steps])
                 r_scores = np.sum(scores, axis=1)
                 best_move = np.argmax(r_scores)
-                result[steps[best_move]] = scores[best_move]
-                if sorted_cards[i+1] is None or r_scores[best_move] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them
+                result[steps[best_move]] = r_scores[best_move]
+                if i is (len(sorted_cards) - 1):
+                    break
+                if r_scores[best_move] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them
                     break
                 # old predictive logic (slow)
                 #steps = status.get_possible_steps(card)
@@ -115,8 +117,8 @@ class Alpha(AI):
                 scores = np.array([self.__score_round_1_step(status, step) for step in steps])
                 r_scores = np.sum(scores, axis=1)
                 best_move = np.argmax(r_scores)
-                result[steps[best_move]] = scores[best_move]
-                if sorted_cards[i+1] is None or r_scores[best_move] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them
+                result[steps[best_move]] = r_scores[best_move]
+                if i is (len(sorted_cards) - 1) or r_scores[best_move] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them
                     break
             logger.debug(f'tableturf.ai.alpha.next_step.round_1: scores={scores}, steps={steps}, case=round_1')
             if len(result) == 0:
