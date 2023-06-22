@@ -150,8 +150,6 @@ class TableTurfManager:
                 round = round - 1
                 if round <= 0:
                     sleep(10)
-                    if self.__over_check(status.stage.grid):
-                        break
             self.__update_stats()
             close = closer.close(self.job_stats)
             self.__close(close)
