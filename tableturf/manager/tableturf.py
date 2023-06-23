@@ -132,9 +132,9 @@ class TableTurfManager:
                 self.__redraw()
             else:
                 #panic protocol
-                
                 self.__controller.press_buttons([Controller.Button.A])
                 self.__controller.press_buttons([Controller.Button.A])
+                self.__give_up()
                 sleep(0.5)
                 continue
             self.__init_roi()
@@ -162,7 +162,7 @@ class TableTurfManager:
 
     def __select_deck(self, deck: int):
         target = deck
-        for i in range(70):
+        for i in range(30):
             current = self.__multi_detect(detection.deck_cursor)(debug=self.__session['debug'])
             if current == target:
                 break
@@ -180,7 +180,7 @@ class TableTurfManager:
         return
 
     def __redraw(self):
-        for i in range(50):
+        for i in range(30):
             if self.__multi_detect(detection.redraw_cursor)(debug=self.__session['debug']) != -1: #on proceed if redraw cursor is found
                 hands = self.__multi_detect(detection.hands)(debug=self.__session['debug'])
                 stage = self.__session['empty_stage']
@@ -337,6 +337,22 @@ class TableTurfManager:
         self.__controller.press_buttons([Controller.Button.A])
         self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
         return
+
+    def __give_up(self):
+        self.__controller.press_buttons([Controller.Button.PLUS])
+        self.__controller.press_buttons([Controller.Button.PLUS])  # in case command is lost
+        target = 1
+        for i in range(30):
+            current = self.__multi_detect(detection.giveup_cursor)(debug=self.__session['debug'])
+            if current == target:
+                break
+            macro = action.move_giveup_cursor_marco(target, current)
+            self.__controller.macro(macro)
+        self.__controller.press_buttons([Controller.Button.A])
+        self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
+        sleep(2)
+        self.__controller.press_buttons([Controller.Button.A])
+        self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
 
     def __update_stats(self):
         result = self.__multi_detect(detection.result)(debug=self.__session['debug'])
