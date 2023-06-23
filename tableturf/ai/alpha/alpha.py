@@ -106,7 +106,7 @@ class Alpha(AI):
                     result[step] = np.max(np.sum(_scores, axis=1))
                 if i is (len(sorted_cards) - 1):
                     break
-                if result[max(result, key=result.get)] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them
+                if len(result) != 0 and result[max(result, key=result.get)] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them
                     break
             logger.debug(f'tableturf.ai.alpha.next_step.round_2: result={result}, case=round_2')
             if len(result) == 0:
