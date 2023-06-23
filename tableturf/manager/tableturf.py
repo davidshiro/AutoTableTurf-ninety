@@ -132,6 +132,7 @@ class TableTurfManager:
                 self.__redraw()
             else:
                 #panic protocol
+                
                 self.__controller.press_buttons([Controller.Button.A])
                 self.__controller.press_buttons([Controller.Button.A])
                 sleep(0.5)
@@ -161,7 +162,7 @@ class TableTurfManager:
 
     def __select_deck(self, deck: int):
         target = deck
-        for i in range(50):
+        for i in range(70):
             current = self.__multi_detect(detection.deck_cursor)(debug=self.__session['debug'])
             if current == target:
                 break
@@ -205,6 +206,7 @@ class TableTurfManager:
 
     def __init_roi(self):
         while self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) == -1:
+            self.__controller.press_buttons([Controller.Button.B]) # if play has begun, returns to hand
             sleep(0.5)
         rois, roi_width, roi_height = detection.stage_rois(self.__capture(), debug=self.__session['debug'])
         self.__session['rois'] = rois

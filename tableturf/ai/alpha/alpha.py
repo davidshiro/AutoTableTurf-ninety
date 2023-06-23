@@ -73,43 +73,49 @@ class Alpha(AI):
         elif status.round == 2:
             sorted_cards = sorted(status.hands, key=lambda c: c.size, reverse=True)
             result = dict()
-            for i, c in enumerate(sorted_cards):
-                if c.sp_cost > status.my_sp - 3:
-                    steps = status.get_normal_steps(c)
-                else:
-                    steps = status.get_possible_steps(c)
-                scores = np.array([self.__score_round_1_step(status, step) for step in steps])
-                r_scores = np.sum(scores, axis=1)
-                best_move = np.argmax(r_scores)
-                result[steps[best_move]] = r_scores[best_move]
+            for i, card in enumerate(sorted_cards):
+                #experimental fast dumb logic
+                #if c.sp_cost > status.my_sp - 3:
+                #    steps = status.get_normal_steps(c)
+                #else:
+                #    steps = status.get_possible_steps(c)
+                #scores = np.array([self.__score_round_1_step(status, step) for step in steps])
+                #r_scores = np.sum(scores, axis=1)
+                #best_move = np.argmax(r_scores)
+                #result[steps[best_move]] = r_scores[best_move]
+                #if i is (len(sorted_cards) - 1):
+                #    break
+                #if r_scores[best_move] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them
+                #    break
+                steps = status.get_possible_steps(card)
+                scores = np.array([self.__score_round_2_step(status, step) for step in steps])
+                possible_sp = np.unique(scores[:, 2])
+                for sp in possible_sp:
+                    sub_group = scores[:, 2] == sp
+                    sub_steps = np.array(steps)[sub_group]
+                    sub_scores = scores[sub_group]
+                    step = sub_steps[np.argmax(np.sum(sub_scores[:, :2], axis=1))]
+                    next_status = util.estimate_status(status, step, expand=True)[0]
+                    # pick the max one who can use special attack
+                    _cards = [c for c in next_status.hands if len(next_status.get_possible_steps(c)) > 1]
+                    if len(_cards) == 0:
+                        continue
+                    _card = max(_cards, key=lambda c: c.size)
+                    _steps = next_status.get_possible_steps(_card)
+                    _scores = np.array([self.__score_round_1_step(next_status, _step) for _step in _steps])
+                    result[step] = np.max(np.sum(_scores, axis=1))
                 if i is (len(sorted_cards) - 1):
                     break
-                if r_scores[best_move] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them
+                if result[max(result, key=result.get)] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them
                     break
-                # old predictive logic (slow)
-                #steps = status.get_possible_steps(card)
-                #scores = np.array([self.__score_round_2_step(status, step) for step in steps])
-                #possible_sp = np.unique(scores[:, 2])
-                #for sp in possible_sp:
-                #    sub_group = scores[:, 2] == sp
-                #    sub_steps = np.array(steps)[sub_group]
-                #    sub_scores = scores[sub_group]
-                #    step = sub_steps[np.argmax(np.sum(sub_scores[:, :2], axis=1))]
-                #    next_status = util.estimate_status(status, step, expand=True)[0]
-                #    # pick the max one who can use special attack
-                #    _cards = [c for c in next_status.hands if len(next_status.get_possible_steps(c)) > 1]
-                #    if len(_cards) == 0:
-                #        continue
-                #    _card = max(_cards, key=lambda c: c.size)
-                #    _steps = next_status.get_possible_steps(_card)
-                #    _scores = np.array([self.__score_round_1_step(next_status, _step) for _step in _steps])
-                #    result[step] = np.max(np.sum(_scores, axis=1))
             logger.debug(f'tableturf.ai.alpha.next_step.round_2: result={result}, case=round_2')
             if len(result) == 0:
                 return status.get_possible_steps()[0]
             return max(result, key=result.get)
 
         elif status.round == 1:
+            if (len(status.stage.my_ink) - len(status.stage.his_ink)) > 30: #shortcut: if score difference is greater than 30, just skip
+                return Step(Step.Action.Skip, status.hands[0], None, None)
             sorted_cards = sorted(status.hands, key=lambda c: c.size, reverse=True)
             result = dict()
             for i, c in enumerate(sorted_cards):
