@@ -71,6 +71,8 @@ class Alpha(AI):
             return steps[np.argmax(np.sum(scores, axis=1))]
 
         elif status.round == 2:
+            if (len(status.stage.my_ink) - len(status.stage.his_ink)) > 50: #shortcut: if score difference is greater than 50, just skip
+                return Step(Step.Action.Skip, status.hands[0], None, None)
             sorted_cards = sorted(status.hands, key=lambda c: c.size, reverse=True)
             result = dict()
             for i, card in enumerate(sorted_cards):
