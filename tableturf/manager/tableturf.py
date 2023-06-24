@@ -351,8 +351,6 @@ class TableTurfManager:
         self.__controller.press_buttons([Controller.Button.A])
         self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
         sleep(2)
-        self.__controller.press_buttons([Controller.Button.A])
-        self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
 
     def __update_stats(self):
         result = self.__multi_detect(detection.result)(debug=self.__session['debug'])
