@@ -96,7 +96,8 @@ class Alpha(AI):
                     sub_group = scores[:, 2] == sp
                     sub_steps = np.array(steps)[sub_group]
                     sub_scores = scores[sub_group]
-                    step = sub_steps[np.argmax(np.sum(sub_scores[:, :2], axis=1))]
+                    best_sub = np.argmax(np.sum(sub_scores[:, :2], axis=1))
+                    step = sub_steps[best_sub]
                     next_status = util.estimate_status(status, step, expand=True)[0]
                     # pick the max one who can use special attack
                     _cards = [c for c in next_status.hands if len(next_status.get_possible_steps(c)) > 1]
@@ -105,7 +106,7 @@ class Alpha(AI):
                     _card = max(_cards, key=lambda c: c.size)
                     _steps = next_status.get_possible_steps(_card)
                     _scores = np.array([self.__score_round_1_step(next_status, _step) for _step in _steps])
-                    result[step] = np.max(np.sum(_scores, axis=1))
+                    result[step] = np.max(np.sum(_scores, axis=1)) + np.sum(sub_scores[:, :2], axis=1)[best_sub]
                 if i is (len(sorted_cards) - 1):
                     break
                 if len(result) != 0 and result[max(result, key=result.get)] > (sorted_cards[i+1].size * 2): #shortcut: if remaining cards could not produce better moves, do not try to use them

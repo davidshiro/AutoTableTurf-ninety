@@ -133,7 +133,6 @@ class TableTurfManager:
             else:
                 #panic protocol
                 self.__controller.press_buttons([Controller.Button.A])
-                self.__controller.press_buttons([Controller.Button.A])
                 self.__give_up()
                 sleep(0.5)
                 continue
@@ -224,7 +223,7 @@ class TableTurfManager:
             sleep(0.5)
             i += 1
         rois, roi_width, roi_height, last_stage = self.__session['rois'], self.__session['roi_width'], self.__session['roi_height'], self.__session['last_stage']
-        stage = self.__multi_detect(detection.stage, 0.1, 5)(rois=rois, roi_width=roi_width, roi_height=roi_height, last_stage=last_stage, debug=self.__session['debug']) #BUG: repeats a lot on no cards playable boards
+        stage = self.__multi_detect(detection.stage, 0.1, 1)(rois=rois, roi_width=roi_width, roi_height=roi_height, last_stage=last_stage, debug=self.__session['debug']) #BUG: repeats a lot on no cards playable boards
         logger.debug("tableturf.__get_status: running")
         self.__session['last_stage'] = stage
         if self.__over_check(stage.grid):
@@ -348,9 +347,14 @@ class TableTurfManager:
                 break
             macro = action.move_giveup_cursor_marco(target, current)
             self.__controller.macro(macro)
-        self.__controller.press_buttons([Controller.Button.A])
+        sleep(1)
         self.__controller.press_buttons([Controller.Button.A])  # in case command is lost
-        sleep(2)
+        sleep(1)
+        self.__controller.press_buttons([Controller.Button.A])
+        sleep(5.5)
+        self.__controller.press_buttons([Controller.Button.A])
+        sleep(1)
+        self.__controller.press_buttons([Controller.Button.A])
 
     def __update_stats(self):
         result = self.__multi_detect(detection.result)(debug=self.__session['debug'])
