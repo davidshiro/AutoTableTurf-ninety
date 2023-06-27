@@ -257,8 +257,8 @@ class TableTurfManager:
         if step.action == step.Action.SpecialAttack:
             while not self.__multi_detect(detection.special_on)(debug=self.__session['debug']):
                 if self.__move_hands_cursor(5):
-                logger.debug("tableturf.__move failure")
-                return True
+                    logger.debug("tableturf.__move failure")
+                    return True
                 self.__controller.press_buttons([Controller.Button.B]) #prevents weird scenarios where detection fails to realize special is already on
                 self.__controller.press_buttons([Controller.Button.A])
         # select card
@@ -329,8 +329,8 @@ class TableTurfManager:
         self.__controller.press_buttons([Controller.Button.B])  #make sure we are not in card placement
         while not self.__multi_detect(detection.skip)(debug=self.__session['debug']):
             if self.__move_hands_cursor(4):
-            logger.debug("tableturf.__move failure")
-            return True
+                logger.debug("tableturf.__move failure")
+                return True
             self.__controller.press_buttons([Controller.Button.A])
         if self.__move_hands_cursor(card):
             logger.debug("tableturf.__move failure")
