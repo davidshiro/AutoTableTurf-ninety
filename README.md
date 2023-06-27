@@ -2,6 +2,14 @@
 
 This is an experimental fork of the AutoTableTurf project that is much more limited in scope- simply creating a fault-tolerant, optimized version of AutoTableTurf to gain EXP as fast as possible. 
 
+## ninety's to do list
+
+- [X] Faster (sometimes dumber is OK) AI
+   - [X] Select cards before checking possible moves
+- [ ] Improve AI logic by minimaxing number of possible moves
+- [ ] Speed up controller macro by doing simultainious button presses
+- [ ] Improve card preview recognition by recognizing special block preview texture
+
 # AutoTableTurf
 
 Automate the Tableturf game helping you reach Level 50 and get all sleeves. The script is based on image recognition and bluetooth emulator to auto play Tableturf.
@@ -83,14 +91,6 @@ Each block represents the configuration of an NPC. The above profile performs th
 ## Demo
 1. [Splatoon3 AutoTableTurf Demo (1/2)](https://youtu.be/6ZauIWV1sGA)
 2. [Splatoon3 AutoTableTurf Demo (2/2)](https://youtu.be/AXANkU0uDiA)
-
-## ninety's to do list
-
-- [X] Faster (sometimes dumber is OK) AI
-   - [X] Select cards before checking possible moves
-- [X] Make trying to redraw outside of redraw less fatal
-- [X] Make trying to select a deck outside of deck selection less fatal
-- [X] Speed up inputs
 
 ## Credits
 
