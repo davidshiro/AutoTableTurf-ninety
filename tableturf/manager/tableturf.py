@@ -204,9 +204,11 @@ class TableTurfManager:
             sleep(0.5)
 
     def __init_roi(self):
-        while self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) == -1:
+        i = 0
+        while self.__multi_detect(detection.hands_cursor)(debug=self.__session['debug']) == -1 and (i < 20):
             self.__controller.press_buttons([Controller.Button.B]) # if play has begun, returns to hand
             sleep(0.5)
+            i += 1
         rois, roi_width, roi_height = detection.stage_rois(self.__capture(), debug=self.__session['debug'])
         self.__session['rois'] = rois
         self.__session['roi_width'] = roi_width
@@ -253,10 +255,10 @@ class TableTurfManager:
             return self.__pass(status.hands.index(step.card))
 
         if step.action == step.Action.SpecialAttack:
-            if self.__move_hands_cursor(5):
+            while not self.__multi_detect(detection.special_on)(debug=self.__session['debug']):
+                if self.__move_hands_cursor(5):
                 logger.debug("tableturf.__move failure")
                 return True
-            while not self.__multi_detect(detection.special_on)(debug=self.__session['debug']):
                 self.__controller.press_buttons([Controller.Button.B]) #prevents weird scenarios where detection fails to realize special is already on
                 self.__controller.press_buttons([Controller.Button.A])
         # select card
@@ -325,10 +327,10 @@ class TableTurfManager:
 
     def __pass(self, card):
         self.__controller.press_buttons([Controller.Button.B])  #make sure we are not in card placement
-        if self.__move_hands_cursor(4):
+        while not self.__multi_detect(detection.skip)(debug=self.__session['debug']):
+            if self.__move_hands_cursor(4):
             logger.debug("tableturf.__move failure")
             return True
-        while not self.__multi_detect(detection.skip)(debug=self.__session['debug']):
             self.__controller.press_buttons([Controller.Button.A])
         if self.__move_hands_cursor(card):
             logger.debug("tableturf.__move failure")
